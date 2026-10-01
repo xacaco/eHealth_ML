@@ -103,8 +103,4 @@ For each student, the session history was aggregated into monthly engagement fea
 
 ## Author
 
-Xavier Calvet Colomé
-
-## Authors
-
-Xavier Calvet, Orgest Beqiri, Jean-Luc Martinot, Lise Haddouk
+Xavier Calvet
