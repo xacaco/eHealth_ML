@@ -18,7 +18,7 @@ Both analyses use only behavioural usage data (who had a session with whom, and 
 | File | Purpose |
 | --- | --- |
 | `Demand_Forecasting.ipynb` | Aggregation, exploration, seasonal-trend decomposition, Prophet forecasting, hyperparameter tuning, validation, and capacity and cost indicators |
-| `Usage_Clustering.ipynb` | Feature engineering, imputation and standardisation, k-means model selection with five validity indices, cluster profiles and plots |
+| `Usage_Clustering.ipynb` | Simulated session log with programme rules, feature engineering, imputation and standardisation, k-means model selection with four validity indices and a weighted rank average, cluster profiles and plots |
 
 ---
 
@@ -56,29 +56,36 @@ Both analyses use only behavioural usage data (who had a session with whom, and 
 
 ## Part 2: Usage clustering (`Usage_Clustering.ipynb`)
 
-### 1. Feature engineering
+### 1. Simulated session log
+- 7,500 users simulated over a **36-month** observation window.
+- Each user is assigned a usage style (one-off, short, moderate or long) that sets how many months they are active, how spread out those months are, and how many sessions they have per active month.
+- Two programme rules are applied and checked:
+  - **At most 12 sessions per year** per user, the maximum the programme covers.
+  - **Inclusion criterion:** only users whose first session is at least 12 months before the end of the window are kept, so every user has at least one year of possible activity.
+
+### 2. Feature engineering
 Each user's session history is aggregated into monthly engagement features:
 
 | Feature | Description |
 | --- | --- |
 | `active_months` | Distinct months with at least one session |
-| `total_months` | Span of months between first and last session |
+| `total_months` | Span in months between first and last session |
 | `sessions_per_month` | Mean sessions in active months |
 | `sessions_in_peak_month` | Maximum sessions in a single month |
 | `gini_monthly` | Gini coefficient of the monthly distribution (unevenness of use) |
 
-### 2. Preprocessing
-- Missing values imputed with the **median** (`SimpleImputer`).
-- Features **standardised** (`StandardScaler`).
+### 3. Preprocessing
+- Missing values (e.g. the Gini index, undefined for a single active month) imputed with the **median** (`SimpleImputer`).
+- Features **standardised** (`StandardScaler`) so each contributes equally to the Euclidean distances used by k-means.
 
-### 3. Model selection
-- **k-means** fitted for k = 2 to 8, the largest range still considered interpretable.
-- Each solution scored with inertia (elbow), silhouette, Calinski–Harabasz, Davies–Bouldin and a custom **Dunn index**.
-- The final k is chosen by weighing the indices together, with priority to silhouette and Calinski–Harabasz.
+### 4. Model selection
+- **k-means** fitted for k = 2 to 6, the largest number of clusters still considered interpretable.
+- Each solution scored with inertia (elbow), silhouette, Calinski–Harabasz and Davies–Bouldin.
+- The final k is selected automatically with a **weighted rank average**: each k is ranked on silhouette, Calinski–Harabasz and Davies–Bouldin, with silhouette and Calinski–Harabasz counting double.
 
-### 4. Cluster description
+### 5. Cluster description
 - Mean feature profile and size of each cluster.
-- Descriptive labels derived from each cluster's profile.
+- Descriptive labels (Brief one-off, Long-term, Intensive short-term, Irregular with peaks) assigned after reviewing each cluster's profile (LLM-assisted naming).
 - Visualisation in two dimensions with **PCA**, and a bar chart of users per profile.
 
 ---
